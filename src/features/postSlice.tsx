@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export const postSlice = createSlice({
   name: "posts",
@@ -7,27 +7,24 @@ export const postSlice = createSlice({
     memo: "",
     expence: 0,
     category: 0,
+    alert: false,
   },
   reducers: {
-    inputDate: (state, action) => {
+    inputDate: (state, action: PayloadAction<string>) => {
       state.date = action.payload;
     },
-    inputMemo: (state, action) => {
+    inputMemo: (state, action: PayloadAction<string>) => {
       state.memo = action.payload;
     },
-    inputPrice: (state, action) => {
+    inputPrice: (state, action: PayloadAction<number>) => {
       state.expence = action.payload;
     },
-    categoryId: (state, action) => {
+    categoryId: (state, action: PayloadAction<number>) => {
       state.category = action.payload;
-    },
-    resetPost: (state, action) => {
-      action.payload = state.memo;
-      action.payload = state.expence;
     },
   },
 });
 
-export const { inputDate, inputPrice, inputMemo, categoryId, resetPost } =
+export const { inputDate, inputPrice, inputMemo, categoryId } =
   postSlice.actions;
 export default postSlice.reducer;

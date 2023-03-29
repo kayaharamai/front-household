@@ -1,18 +1,29 @@
-import React from "react";
+import React, { ChangeEvent, forwardRef, useImperativeHandle } from "react";
 import FormStyle from "../../styles/form/formStyle.module.scss";
 import { useDispatch } from "react-redux";
 import { addPassword } from "../../features/formSlice";
 import { useState } from "react";
+import AddBoxIcon from "@mui/icons-material/AddBox";
 
-const PasswordInput = () => {
+const PasswordInput = forwardRef((props, ref) => {
   const [passwordShown, setPasswordShown] = useState(false);
+  const [password, setPassword] = useState("");
   const dispatch = useDispatch();
+  const [isRevealPassword, setIsRevealPassword] = useState(false);
   const togglePassword = () => {
-    // When the handler is invoked
-    // inverse the boolean state of passwordShown
-    setPasswordShown(!passwordShown);
+    setIsRevealPassword((prevState) => !prevState);
   };
 
+  const handlePassword = (e: ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    dispatch(addPassword(e.target.value));
+  };
+
+  useImperativeHandle(ref, () => ({
+    clearPass: () => {
+      setPassword("");
+    },
+  }));
   return (
     <>
       <div className={FormStyle.inputMain}>
@@ -20,10 +31,22 @@ const PasswordInput = () => {
           type={passwordShown ? "text" : "password"}
           placeholder="パスワードを入力してください"
           id="password"
-          onChange={(e: any) => dispatch(addPassword(e.target.value))}
+          value={password}
+          onChange={handlePassword}
         />
+        <span
+          onClick={togglePassword}
+          role="presentation"
+          className={FormStyle.PasswordReveal}
+        >
+          {isRevealPassword ? (
+            <AddBoxIcon />
+          ) : (
+            <i className="fas fa-eye-slash" />
+          )}
+        </span>
       </div>
-      <button onClick={togglePassword}></button>
+
       {/* <div>
         <input
           type={passwordShown ? "text" : "password"}
@@ -32,6 +55,6 @@ const PasswordInput = () => {
       </div> */}
     </>
   );
-};
+});
 
 export default PasswordInput;

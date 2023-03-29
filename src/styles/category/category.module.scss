@@ -17,39 +17,50 @@ $breakpoints: (
   @include mq(tab) {
     width: 90%;
   }
+  @include mq(sp) {
+    width: 100%;
+  }
   p {
     margin: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    @include mq(sp) {
+      font-size: 16px;
+      margin: 10px;
+    }
   }
   label {
     display: inline-block;
-    // background-image: url("../../images/pencil.png");
     input {
       display: none;
     }
     span {
       color: #333;
-      font-size: 14px;
+      font-size: 16px;
       border: 1px solid #333;
       margin: 10px;
       display: inline-block;
       width: 120px;
       height: 120px;
+      border-radius: 5px;
       @include mq(tab) {
+        width: 90px;
+        height: 90px;
+        font-size: 12px;
+      }
+      @include mq(sp) {
         width: 70px;
         height: 70px;
+        margin: 5px;
       }
+    }
+    svg {
+      width: 75%;
+      height: 75%;
     }
   }
 }
 
 label input:checked + span {
-  color: #fff;
-  background: #fbb;
-  border: 1px solid #fbb;
+  border: 3px solid #8b0000;
 }
-
-// .radio {
-//   width: 120px;
-//   height: 120px;
-//   background-image: url("../../images/pencil.png");
-// }

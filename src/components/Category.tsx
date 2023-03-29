@@ -5,22 +5,23 @@ import React, {
   useImperativeHandle,
   useState,
 } from "react";
-import { categoryNameList, categoryDate } from "../CategoryDummyDate";
+import { categoryDate } from "../CategoryDate";
 import CategoryStyle from "../styles/category/category.module.scss";
 import { useDispatch } from "react-redux";
 import { categoryId } from "../features/postSlice";
 import { useLocation } from "react-router-dom";
-import { PostState } from "../types/Types";
+import { CategoryData, PostState } from "../types/Types";
 
-const Category = forwardRef((state: any, ref) => {
+const Category = forwardRef((props, ref) => {
+  const { state } = useLocation();
   const location = useLocation();
   const currentLocation = location.pathname;
-  const categoryState = state.state;
+  const categoryState: PostState = state;
   const dispatch = useDispatch();
 
   //編集画面の場合のみ初期値をいれる
-  const [postedCategory, setpostedCategory] = useState(
-    currentLocation.slice(1, 5) === "edit" ? categoryState?.category.name : ""
+  const [postedCategory, setpostedCategory] = useState<string>(
+    !currentLocation.startsWith("/home") ? categoryState?.category.name : "食費"
   );
 
   //カテゴリー名一致
@@ -28,12 +29,12 @@ const Category = forwardRef((state: any, ref) => {
     (item) => postedCategory === item.name
   );
 
-  //一瞬だけreduxに入るが初期値に戻る動きの解消
+  //一瞬だけreduxに入るが初期値に戻る動きの解消（reduxにcategoryIdをいれる）
   useEffect(() => {
     if (postedCategory === categoryState?.category.name) {
-      dispatch(categoryId(initialCategoryDate[0].categoryId));
+      dispatch(categoryId(initialCategoryDate[0]?.categoryId));
     } else {
-      dispatch(categoryId(Number(postedCategory)));
+      dispatch(categoryId(1));
     }
   }, []);
 
@@ -54,9 +55,9 @@ const Category = forwardRef((state: any, ref) => {
   return (
     <div className={CategoryStyle.categoryContainer}>
       <p>カテゴリー</p>
-      {categoryNameList?.map((category: string) => {
+      {categoryDate?.map((category: CategoryData) => {
         return (
-          <React.Fragment key={category}>
+          <React.Fragment key={category.id}>
             {/* <div className={CategoryStyle.radio}> */}
             <label>
               <input
@@ -64,11 +65,14 @@ const Category = forwardRef((state: any, ref) => {
                 className="categoryButton"
                 name="category"
                 id="category"
-                value={category}
-                checked={category === postedCategory}
+                value={category.name}
+                checked={category.name === postedCategory}
                 onChange={changeCategory}
               />
-              <span>{category}</span>
+              <span>
+                {category.name}
+                {category.icon}
+              </span>
             </label>
             {/* </div> */}
           </React.Fragment>

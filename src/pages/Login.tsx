@@ -1,5 +1,5 @@
 import React from "react";
-import DefaultLayout from "../components/layout/dafaultLayout";
+import DefaultLayout from "../components/layout/defaultLayout";
 import PrimaryButton from "../components/button/PrimaryButton";
 import LoginStyle from "../styles/pages/login.module.scss";
 import EmailInput from "../components/form/emailInput";
@@ -10,6 +10,9 @@ import { FormState } from "../types/Types";
 import axios from "axios";
 import { response } from "express";
 import { useNavigate } from "react-router-dom";
+import toastItem from "../components/modal/Toast";
+import { toast } from "react-toastify";
+import { RootState } from "../types/Types";
 const Login = () => {
   const formEmail = useSelector((state: FormState) => state.authForm.email);
   const formPassword = useSelector(
@@ -22,45 +25,50 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [loginUser, setLoginUser] = React.useState<any>();
+  const [loginUser, setLoginUser] = React.useState<{
+    email: string;
+    password: string;
+  }>();
 
+  // エラーメッセージ
+  const { successMsg, errorMsg } = toastItem();
+  const [error, setError] = React.useState<string>();
   const handleLogin = () => {
-    axios.post("/auth/login", {
-      email: formEmail,
-      password: formPassword,
-    });
+    if (formEmail.length > 1 && formPassword.length > 1) {
+      axios
+        .post("/auth/login", {
+          email: formEmail,
+          password: formPassword,
+        })
+        .then((response) => {
+          axios.get("/user").then((response) => {
+            setLoginUser(response.data);
+            document.cookie = `id=${response.data.id}`;
+          });
 
-    alert("ログイン成功"); //
-
-    axios.get("/user").then((response) => {
-      // ログインしているユーザー情報の取得
-      setLoginUser(response.data);
-      // document.cookie =`id=${loginUser?.id}`
-      document.cookie = `id=${response.data.id}`;
-
-      console.log((document.cookie = `id=${response.data.id}`));
-    });
-    navigate("/home");
+          successMsg("ログインしました");
+          navigate("/home");
+        })
+        .catch((error) => {
+          console.log(error);
+          if (error.response && error.response.status === 400) {
+            errorMsg("メールアドレスまたはパスワードが間違っています");
+          }
+          setError(error.response.data.message);
+        });
+    }
   };
-  const handleLogout = () => {
-    axios.post("/auth/logout", {});
-    alert("ログアウト");
-    document.cookie = "id=; max-age=0";
-    // localStorage.setItem("token","")
-  };
+
   return (
     <>
       <DefaultLayout>
-        <EmailInput />
+        <EmailInput userEmail="" />
         <PasswordInput />
+        {error}
         <PrimaryButton
           children={"ログインする"}
           onClick={() => handleLogin()}
         />
-        {/* <PrimaryButton
-          children={"ログアウトする"}
-          onClick={() => handleLogout()}
-        /> */}
         <p>アカウントを持っていませんか？</p>
         <div className={LoginStyle.linkCenter}>
           <Link to="/" className={LoginStyle.txtOrange}>

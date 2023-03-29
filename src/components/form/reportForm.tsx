@@ -8,32 +8,35 @@ import React, {
 import reportPostStyle from "../../styles/reportPost/reportPost.module.scss";
 import { inputDate, inputPrice, inputMemo } from "../../features/postSlice";
 import { useDispatch } from "react-redux";
-import { Link, useLocation } from "react-router-dom";
-import { PostState } from "../../types/Types";
-import { ArrowLeft } from "phosphor-react";
+import { useLocation } from "react-router-dom";
+import moment from "moment";
 
-const ReportForm = forwardRef((state: any, ref) => {
+const ReportForm = forwardRef((props, ref) => {
   const location = useLocation();
   const currentLocation = location.pathname;
   const dispatch = useDispatch();
 
-  // const { state } = useLocation();
-  console.log(state, 89);
-
-  const postState = state.state;
+  //詳細ページからのデータ受け取り
+  const { state } = useLocation();
+  const postState = state;
   const postDate = postState?.createdAt?.slice(0, 10);
 
-  const [memo, setMemo] = useState(
-    currentLocation.slice(1, 5) === "edit" ? postState?.content : ""
+  const todayDate = new Date();
+
+  //パスによって初期値変更
+  const [memo, setMemo] = useState<string>(
+    currentLocation.startsWith("/edit") ? postState?.content : ""
   );
   const [price, setPrice] = useState(
-    currentLocation.slice(1, 5) === "edit" ? postState?.price : 0
+    currentLocation.startsWith("/edit") ? postState?.price : 0
   );
-  const [date, setDate] = useState(
-    currentLocation.slice(1, 5) === "edit" ? postDate : ""
+  const [date, setDate] = useState<string>(
+    currentLocation.startsWith("/edit")
+      ? postDate
+      : moment(todayDate).format("YYYY-MM-DD")
   );
 
-  //一瞬だけreduxに入るが初期値に戻る動きの解消
+  //初期値をreduxへいれる（/homeと/editで変更）
   useEffect(() => {
     if (memo === postState?.content) {
       dispatch(inputMemo(postState?.content));
@@ -59,6 +62,7 @@ const ReportForm = forwardRef((state: any, ref) => {
     }
   };
 
+  //e.target.valueAsNumber
   const handleExpence = (e: ChangeEvent<HTMLInputElement>) => {
     setPrice(e.target.value);
     if (e.target.value !== postState?.price) {
@@ -81,18 +85,14 @@ const ReportForm = forwardRef((state: any, ref) => {
     },
   }));
 
+  const clearInitialPrice = () => {
+    if (price === 0) {
+      setPrice("");
+    }
+  };
+
   return (
     <div className={reportPostStyle.container}>
-      {currentLocation.slice(1, 5) === "edit" ? (
-        <div>
-          <Link to="/">
-            <ArrowLeft size={24} />
-          </Link>
-        </div>
-      ) : (
-        ""
-      )}
-      {/* formで日付、メモ、金額をまとめてdispatchするか */}
       <form>
         <div className={reportPostStyle.postList}>
           <label htmlFor="date">日付</label>
@@ -109,10 +109,12 @@ const ReportForm = forwardRef((state: any, ref) => {
             id="expence"
             value={price}
             onChange={handleExpence}
+            onClick={clearInitialPrice}
           />
           円
         </div>
       </form>
+      {/* {reportAlert ? <p>入力してください</p> : ""} */}
     </div>
   );
 });

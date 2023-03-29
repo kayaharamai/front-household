@@ -4,51 +4,55 @@ import HomeStyle from "../styles/pages/Home.module.scss";
 import ReportForm from "../components/form/reportForm";
 import PrimaryButton from "../components/button/PrimaryButton";
 import SecondaryButton from "../components/button/SecondaryButton";
-import DefaultLayout from "../components/layout/dafaultLayout";
+import DefaultLayout from "../components/layout/defaultLayout";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ConfirmModal from "../components/modal/ConfirmModal";
-import Test from "../components/Test";
+import toastItem from "../components/modal/Toast";
+import { RootState } from "../types/Types";
+import Cookies from "js-cookie";
 
-const ReportEdit = () => {
-  const [editModalIsOpen, setEditModalIsOpen] = useState(false);
+const ReportEdit: React.FC = () => {
+  const [editModalIsOpen, setEditModalIsOpen] = useState<boolean>(false);
 
-  const reportDate = useSelector((state: any) => state.posts.date);
-  const reportPrice = useSelector((state: any) => state.posts.expence);
-  const reportMemo = useSelector((state: any) => state.posts.memo);
-  const reportCategory = useSelector((state: any) => state.posts.category);
+  const reportDate = useSelector((state: RootState) => state.posts.date);
+  const reportPrice = useSelector((state: RootState) => state.posts.expence);
+  const reportMemo = useSelector((state: RootState) => state.posts.memo);
+  const reportCategory = useSelector(
+    (state: RootState) => state.posts.category
+  );
 
   const reportDateTime = new Date(reportDate);
   const updateDate = new Date();
   const navigate = useNavigate();
   const params = useParams();
 
-  //一覧画面の詳細Postデータ
-  const { state } = useLocation();
+  const userId = Cookies.get("id");
+
+  const { successMsg, errorMsg } = toastItem();
 
   const clickEdit = async () => {
-    //createdAt,categoryId,price必須のバリデーション予定
-
     const updatePost = {
       content: reportMemo,
-      authorId: state.authorId,
+      authorId: userId,
       categoryId: reportCategory,
       createdAt: reportDateTime,
       updatedAt: updateDate,
       price: reportPrice,
     };
+    if (reportPrice === 0) {
+      errorMsg("金額を0円以上入力してください");
+    }
     await axios.patch(`/post/${params.id}`, updatePost);
-    alert("レポートを更新しました");
-    //一覧画面完成後、遷移先変更
-    navigate("/");
+    successMsg("レポートを更新しました");
+    navigate("/report");
   };
 
   const deletePost = async () => {
     await axios.delete(`/post/${params.id}`);
-    alert("削除しました");
-    //一覧画面完成後、遷移先変更
-    navigate("/home");
+    successMsg("削除しました");
+    navigate("/report");
   };
 
   const deleteOpenModal = () => {
@@ -59,8 +63,8 @@ const ReportEdit = () => {
     <DefaultLayout>
       <div>
         <div className={HomeStyle.reportMain}>
-          <ReportForm state={state} />
-          <Category state={state} />
+          <ReportForm />
+          <Category />
           <PrimaryButton children="支出を上書きする" onClick={clickEdit} />
           <SecondaryButton children="削除" onClick={deleteOpenModal} />
           {editModalIsOpen ? (
@@ -68,11 +72,11 @@ const ReportEdit = () => {
               editModalIsOpen={editModalIsOpen}
               setEditModalIsOpen={setEditModalIsOpen}
               onClick={deletePost}
+              children="本当に削除"
             />
           ) : (
             ""
           )}
-          {/* <Test /> */}
         </div>
       </div>
     </DefaultLayout>

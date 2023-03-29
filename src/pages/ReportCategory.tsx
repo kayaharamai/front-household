@@ -1,55 +1,85 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import DefaultLayout from "../components/layout/dafaultLayout";
-import reportPostStyle from "../../src/styles/reportPost/reportPost.module.scss";
+import DefaultLayout from "../components/layout/defaultLayout";
+import reportCategoryStyle from "../../src/styles/reportPost/reportCategory.module.scss";
 import Cookies from "js-cookie";
+import { Link, useParams, useLocation } from "react-router-dom";
+import moment from "moment";
 import { PostAll } from "../types/Types";
-import { categoryGroup } from "../types/Types";
-import { useDispatch, useSelector } from "react-redux";
-import PieGraph from "../components/chart/pieGraph";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateField } from "@mui/x-date-pickers/DateField";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import dayjs from "dayjs";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { startOfMonth, endOfMonth } from "date-fns";
-import format from "date-fns/format";
-import { isAfter } from "date-fns";
-import { getDate, getMonth, getYear } from "date-fns";
-
+import { useNavigate } from "react-router-dom";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 const ReportCategory = () => {
   // ログイン中のユーザーidを取得
   const id = Cookies.get("id");
-  console.log(id, "id");
-  const [selectedCategoryPost, setSelectedCategoryPost] = useState<any>();
 
-  const categoryId = 2;
+  const navigate = useNavigate();
+  const [selectedCategoryPost, setSelectedCategoryPost] = useState<PostAll[]>(
+    []
+  );
+
+  const params = useParams();
+  const categoryId = params.id;
+
   useEffect(() => {
     axios.get(`/post/category/${categoryId}`).then((response) => {
       setSelectedCategoryPost(response.data);
     });
   }, []);
-
   console.log(selectedCategoryPost);
 
   const filterCategory = selectedCategoryPost?.filter(
-    (post: any) => post.authorId === Number(id)
+    (post: { authorId: number }) => post.authorId === Number(id)
   );
   console.log(filterCategory, "filter");
+
+  //　 /report での選択した年月の文字列取得
+  const location = useLocation();
+  const [selectedDate, setSelectedDate] = useState<String>(location.state);
+  console.log(selectedDate, "location");
+
+  // /report で選択した文字列ex.202303 　と一致するpostへ
+  const filterDate = filterCategory?.filter(
+    (post) => post.createdAt.slice(0, 7) === selectedDate
+  );
+
   return (
     <DefaultLayout>
-      <div>
-        {filterCategory?.map((data: any) => {
+      <div className={reportCategoryStyle.container}>
+        {filterDate?.map((data: any) => {
           return (
-            <>
-              <p> {data.createdAt}</p>
-              <div>
-                <label>{data.category?.name}</label>
-                <span> {data.price}円</span>
-              </div>
-            </>
+            <React.Fragment key={data.id}>
+              <button
+                className={reportCategoryStyle.block}
+                onClick={() => navigate(`/edit/${data.id}`, { state: data })}
+              >
+                {/* <Link
+                  to={String(data.categoryId)}
+                  className={reportCategoryStyle.arrow}
+                > */}
+                <table>
+                  <tbody>
+                    <tr>
+                      <th className={reportCategoryStyle.date}>
+                        {/* momentでの日付変換(data-fnsではinvalid valueとなる) */}
+                        {moment(data.createdAt).format("YYYY年MM月DD日")}
+                      </th>
+                      <th className={reportCategoryStyle.date}></th>
+                      <th className={reportCategoryStyle.date}></th>
+                    </tr>
+                    <tr>
+                      {/* <th>{moment(data.createdAt).format("YYYY年MM月DD日")}</th> */}
+                      <th>{data.category?.name}</th>
+                      <th className={reportCategoryStyle.smallFont}>
+                        {data.price}円
+                      </th>
+                      <th className={reportCategoryStyle.textRight}>
+                        <ArrowForwardIosIcon />
+                      </th>
+                    </tr>
+                  </tbody>
+                </table>
+              </button>
+            </React.Fragment>
           );
         })}
       </div>
@@ -58,8 +88,3 @@ const ReportCategory = () => {
 };
 
 export default ReportCategory;
-// // 期間の始めと終わりを指定
-// ?start=20230301&end=20230331
-// // 対象の年月を指定
-// ?term=202303
-// http://localhost:3005/post/category/2

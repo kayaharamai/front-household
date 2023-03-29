@@ -1,38 +1,50 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
 import { useSelector } from "react-redux";
 import Category from "../components/Category";
 import HomeStyle from "../styles/pages/Home.module.scss";
 import ReportForm from "../components/form/reportForm";
 import PrimaryButton from "../components/button/PrimaryButton";
-import DefaultLayout from "../components/layout/dafaultLayout";
+import DefaultLayout from "../components/layout/defaultLayout";
 import axios from "axios";
+import Cookies from "js-cookie";
+import toastItem from "../components/modal/Toast";
+import { RootState } from "../types/Types";
 
-const Home = () => {
-  const reportDate = useSelector((state: any) => state.posts.date);
-  const reportPrice = useSelector((state: any) => state.posts.expence);
-  const reportMemo = useSelector((state: any) => state.posts.memo);
-  const reportCategory = useSelector((state: any) => state.posts.category);
+const Home: React.FC = () => {
+  const reportDate = useSelector((state: RootState) => state.posts.date);
+  const reportPrice = useSelector((state: RootState) => state.posts.expence);
+  const reportMemo = useSelector((state: RootState) => state.posts.memo);
+  const reportCategory = useSelector(
+    (state: RootState) => state.posts.category
+  );
+
+  const userId = Cookies.get("id");
 
   const reportDateTime = new Date(reportDate);
   const updateDate = new Date();
 
-  const inputFormRef = useRef<any>(null);
-  const categoryRef = useRef<any>(null);
+  const inputFormRef = useRef<HTMLFormElement>(null);
+  const categoryRef = useRef<HTMLFormElement>(null);
+
+  const { successMsg, errorMsg } = toastItem();
 
   const clickPost = async () => {
     const newPost = {
       content: reportMemo,
-      authorId: 1,
+      authorId: userId,
       categoryId: reportCategory,
       createdAt: reportDateTime,
       updatedAt: updateDate,
       price: reportPrice,
     };
+    if (reportPrice === 0) {
+      errorMsg("金額を0円以上入力してください");
+    }
     await axios.post("/post", newPost);
-    alert("レポートを登録しました");
+    successMsg("レポートを登録しました");
     if (inputFormRef.current !== null || categoryRef.current !== null) {
-      inputFormRef.current.clearForm();
-      categoryRef.current.clearCategory();
+      inputFormRef.current?.clearForm();
+      categoryRef.current?.clearCategory();
     }
   };
 

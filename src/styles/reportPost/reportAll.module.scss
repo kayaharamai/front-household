@@ -8,12 +8,43 @@ $breakpoints: (
   width: 90%;
   margin: 0 auto;
 }
+.container {
+  background: #fff;
+  padding: 50px 0;
+  border-radius: 20px;
+  table {
+    width: 80%;
+    margin: 0 auto;
+    border-spacing: 0;
+    // background-color: yellow;
+    border-bottom: 1px solid;
+  }
+
+  th,
+  td {
+    text-align: right;
+    padding: 20px 10px;
+    font-weight: normal;
+    border-bottom: 2px border #dddd;
+  }
+  .textLeft {
+    text-align: left;
+    width: 20%;
+  }
+  .block {
+    display: block;
+    width: 100%;
+  }
+  .subtotal {
+    width: 30%;
+  }
+}
 @media (min-width: 900px) {
   .postList {
     display: flex;
     align-items: center;
     margin: 5px auto;
-    border-bottom: 1px black solid;
+    border-bottom: 1px #d9d9d9 solid;
     width: 80%;
     label {
       display: table-cell;
@@ -35,4 +66,9 @@ $breakpoints: (
   .pie {
     width: 54%;
   }
+}
+
+.smallFont {
+  font-size: small;
+  margin-left: 50px;
 }
