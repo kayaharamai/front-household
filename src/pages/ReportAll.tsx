@@ -7,16 +7,14 @@ import { PostAll } from "../types/Types";
 import { categoryGroup } from "../types/Types";
 import PieGraph from "../components/chart/pieGraph";
 import { useNavigate } from "react-router-dom";
-import { BrowserRouter, Route, Link } from "react-router-dom";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import { categoryDate } from "../CategoryDate";
+import { expenceCategoryDate } from "../CategoryDate";
 const ReportAll = () => {
   // ログイン中のユーザーidを取得
   const id = Cookies.get("id");
 
   const [postAll, setPostAll] = React.useState<PostAll[]>([]);
   console.log(postAll, "postAll");
-
   // カレンダーによる絞り込み
   //  初期値に現在の年月の設定
   const today = new Date();
@@ -30,7 +28,7 @@ const ReportAll = () => {
     (post) => post.createdAt.slice(0, 7) === selectedDate
   );
 
-  const total = filterDate?.reduce((sum, post) => sum + post.price, 0);
+  const total = filterDate?.reduce((sum, post) => sum + post.expence, 0);
   console.log(total, "total");
   // 項目ごとの小計
   const selectedCategoryGroup = filterDate?.reduce<categoryGroup[]>(
@@ -47,7 +45,7 @@ const ReportAll = () => {
 
       if (exists) {
         // あるなら単純に足し合わせて返却(existsオブジェクトを書き換える)
-        exists.subtotal += cur.price;
+        exists.subtotal += cur.expence;
         return prev;
       } else {
         // ないなら後ろに追加する
@@ -55,7 +53,7 @@ const ReportAll = () => {
           ...prev,
           {
             categoryId: cur.categoryId,
-            subtotal: cur.price,
+            subtotal: cur.expence,
             name: cur.category.name,
             color: cur.category.color,
           },
@@ -65,7 +63,13 @@ const ReportAll = () => {
     // prevの初期値
     []
   );
+  // subtotalが0円の項目をfilterして非表示へ
+  const filterCategoryGroup = selectedCategoryGroup.filter(
+    (data: any) => data.subtotal > 0
+  );
+
   console.log("selectedCategoryGroup", selectedCategoryGroup);
+
   useEffect(() => {
     axios.get(`/post/${id}`).then((response) => {
       setPostAll(response.data);
@@ -94,20 +98,16 @@ const ReportAll = () => {
         </div>
 
         <div className={reportPostStyle.pie}>
-          {selectedCategoryGroup.length > 0 ? (
+          {filterCategoryGroup.length > 0 ? (
             <PieGraph selectedCategoryGroup={selectedCategoryGroup} />
           ) : (
             <p>まだ指定月のデータはありません</p>
           )}
         </div>
         <div>
-          {selectedCategoryGroup?.map((data: any, index) => {
+          {filterCategoryGroup?.map((data: any, index) => {
             return (
               <React.Fragment key={data.categoryId}>
-                {/* <Link
-                  to={String(data.categoryId)}
-                  className={reportPostStyle.arrow}
-                > */}
                 <button
                   className={reportPostStyle.block}
                   onClick={() =>
@@ -125,7 +125,7 @@ const ReportAll = () => {
                         <th className={reportPostStyle.subtotal}>
                           {data.subtotal}円
                         </th>
-                        <th className={reportPostStyle.smallFont}>
+                        <th className={reportPostStyle.ratio}>
                           {((data.subtotal / total) * 100).toFixed(1)}%
                         </th>
                         <th>
