@@ -1,5 +1,5 @@
-import React, { useRef } from "react";
-import { useSelector } from "react-redux";
+import React, { useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Category from "../components/Category";
 import HomeStyle from "../styles/pages/Home.module.scss";
 import ReportForm from "../components/form/reportForm";
@@ -9,6 +9,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import toastItem from "../components/modal/Toast";
 import { RootState } from "../types/Types";
+import { inputPrice } from "../features/postSlice";
 
 const Home: React.FC = () => {
   const reportDate = useSelector((state: RootState) => state.posts.date);
@@ -17,6 +18,8 @@ const Home: React.FC = () => {
   const reportCategory = useSelector(
     (state: RootState) => state.posts.category
   );
+
+  const [error, setError] = useState<string>();
 
   const userId = Cookies.get("id");
 
@@ -63,6 +66,7 @@ const Home: React.FC = () => {
       <div>
         <div className={HomeStyle.reportMain}>
           <ReportForm ref={inputFormRef} />
+          <p>{error}</p>
           <Category ref={categoryRef} />
           <PrimaryButton children="支出を入力する" onClick={clickPost} />
         </div>

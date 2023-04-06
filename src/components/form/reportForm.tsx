@@ -28,7 +28,9 @@ const ReportForm = forwardRef((props, ref) => {
     currentLocation.startsWith("/edit") ? postState?.content : ""
   );
   const [price, setPrice] = useState(
-    currentLocation.startsWith("/edit") ? postState?.expence : 0
+    currentLocation.startsWith("/edit")
+      ? postState?.expence || postState?.income
+      : 0
   );
   const [date, setDate] = useState<string>(
     currentLocation.startsWith("/edit")
@@ -70,7 +72,7 @@ const ReportForm = forwardRef((props, ref) => {
     }
   };
 
-  const changeDate = (e: ChangeEvent<HTMLInputElement>) => {
+  const categoryGroups = (e: ChangeEvent<HTMLInputElement>) => {
     setDate(e.target.value);
     if (e.target.value !== postDate) {
       dispatch(inputDate(e.target.value));
@@ -81,6 +83,7 @@ const ReportForm = forwardRef((props, ref) => {
     clearForm: () => {
       setMemo("");
       setPrice(0);
+      dispatch(inputPrice(0));
     },
   }));
 
@@ -95,7 +98,7 @@ const ReportForm = forwardRef((props, ref) => {
       <form>
         <div className={reportPostStyle.postList}>
           <label htmlFor="date">日付</label>
-          <input type="date" id="date" value={date} onChange={changeDate} />
+          <input type="date" id="date" value={date} onChange={categoryGroups} />
         </div>
         <div className={reportPostStyle.postList}>
           <label htmlFor="memo">メモ</label>
